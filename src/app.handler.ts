@@ -7,6 +7,7 @@ import {
   PubSubEventData,
   PubSubHandler,
 } from '@st-api/firebase';
+import dayjs from 'dayjs';
 import { and, asc, eq, gte, lte, or } from 'drizzle-orm';
 
 import {
@@ -14,10 +15,9 @@ import {
   WORKOUT_PROCESSOR_QUEUE,
   WORKOUT_TYPE_OTHER_ID,
 } from './app.constants.js';
+import { PERIOD_NOT_FOUND } from './exceptions.js';
 import { WorkoutEventDto } from './workout-event.dto.js';
 import { WorkoutInputDto } from './workout-input.dto.js';
-import dayjs from 'dayjs';
-import { PERIOD_NOT_FOUND } from './exceptions.js';
 
 @Injectable()
 export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
@@ -65,8 +65,8 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
 
     const period = await this.drizzle.query.cfgPeriod.findFirst({
       where: and(
-        gte(cfg.period.startAt, startAt),
-        lte(cfg.period.endAt, endAt),
+        lte(cfg.period.startAt, startAt),
+        gte(cfg.period.endAt, endAt),
         eq(cfg.period.active, true),
       ),
       orderBy: [asc(cfg.period.startAt), asc(cfg.period.endAt)],
