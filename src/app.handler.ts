@@ -29,7 +29,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
   private readonly logger = Logger.create(this);
 
   async handle(event: PubSubEventData<typeof WorkoutInputDto>): Promise<void> {
-    this.logger.info('event', event);
+    this.logger.info('event', { event });
 
     const workoutExists = await this.drizzle.query.usrWorkout.findFirst({
       where: eq(usr.workout.externalId, event.data.id),
@@ -46,7 +46,10 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
     }
 
     const user = await this.drizzle.query.usrUser.findFirst({
-      where: eq(usr.user.name, event.data.username),
+      where: and(
+        eq(usr.user.name, event.data.username),
+        eq(usr.user.active, true),
+      ),
       columns: {
         id: true,
       },
@@ -79,9 +82,14 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
     }
 
     const workoutTypes = await this.drizzle.query.wrkWorkoutType.findMany({
-      where: or(
-        eq(wrk.workoutType.name, event.data.workoutActivityType),
-        eq(wrk.workoutType.id, WORKOUT_TYPE_OTHER_ID),
+      where: and(
+        eq(wrk.workoutType.active, true),
+        and(
+          or(
+            eq(wrk.workoutType.name, event.data.workoutActivityType),
+            eq(wrk.workoutType.id, WORKOUT_TYPE_OTHER_ID),
+          ),
+        ),
       ),
       columns: {
         id: true,
@@ -149,7 +157,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
       periodId: userWorkout.periodId,
     };
 
-    this.logger.info('eventData: ', eventData);
+    this.logger.info('eventData', { eventData });
 
     await this.eventarc.publish({
       type: WORKOUT_CREATED_EVENT,
