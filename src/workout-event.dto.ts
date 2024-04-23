@@ -6,7 +6,6 @@ export interface WorkoutEventDto {
   duration: number;
   distance?: number;
   workoutTypeId: number;
-  workoutTypeName: string;
   workoutName?: string;
   energyBurned: number;
   userId: number;

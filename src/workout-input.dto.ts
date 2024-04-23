@@ -12,14 +12,18 @@ const DatetimeSchema = z
   .transform((value) => new Date(value));
 
 export const WorkoutInputDto = z.object({
-  id: z.string().trim().min(1).max(255),
-  startTime: DatetimeSchema,
-  endTime: DatetimeSchema,
-  duration: DoubleSchema,
-  totalDistance: DoubleSchema.optional(),
-  workoutActivityType: z.string().trim().min(1),
-  totalEnergyBurned: DoubleSchema,
   username: z.string().trim().min(1).max(255),
+  workouts: z
+    .object({
+      id: z.string().trim().min(1).max(255),
+      startTime: DatetimeSchema,
+      endTime: DatetimeSchema,
+      duration: DoubleSchema,
+      totalDistance: DoubleSchema.optional(),
+      workoutActivityType: z.string().trim().min(1),
+      totalEnergyBurned: DoubleSchema,
+    })
+    .array(),
 });
 
 export type WorkoutInputDto = z.infer<typeof WorkoutInputDto>;
