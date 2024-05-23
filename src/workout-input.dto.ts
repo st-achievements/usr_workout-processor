@@ -12,7 +12,6 @@ const DatetimeSchema = z
   .transform((value) => new Date(value));
 
 export const WorkoutInputDto = z.object({
-  username: z.string().trim().min(1).max(255),
   workouts: z
     .object({
       id: z.string().trim().min(1).max(255),

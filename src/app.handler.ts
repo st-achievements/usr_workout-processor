@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { EventarcService, getAuthContext } from '@st-achievements/core';
 import { cfg, Drizzle, usr, wrk } from '@st-achievements/database';
 import { getCorrelationId } from '@st-api/core';
 import {
   createPubSubHandler,
-  Eventarc,
   Logger,
   PubSubEventData,
   PubSubHandler,
@@ -22,36 +22,22 @@ import { WorkoutInputDto } from './workout-input.dto.js';
 @Injectable()
 export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
   constructor(
-    private readonly eventarc: Eventarc,
+    private readonly eventarcService: EventarcService,
     private readonly drizzle: Drizzle,
   ) {}
 
   private readonly logger = Logger.create(this);
 
   async handle(event: PubSubEventData<typeof WorkoutInputDto>): Promise<void> {
+    const { userId } = getAuthContext();
+    Logger.setContext(`u${userId}`);
+
     this.logger.info({ event });
 
     if (!event.data.workouts.length) {
       this.logger.info(
         'Received an empty workouts array, nothing will be done',
       );
-      return;
-    }
-
-    const user = await this.drizzle.query.usrUser.findFirst({
-      where: and(
-        eq(usr.user.name, event.data.username),
-        eq(usr.user.active, true),
-      ),
-      columns: {
-        id: true,
-      },
-    });
-
-    this.logger.info({ user });
-
-    if (!user) {
-      this.logger.warn(`username ${event.data.username} not found`);
       return;
     }
 
@@ -174,7 +160,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
         externalId: workout.id,
         distance: workout.totalDistance,
         endedAt: workout.endTime,
-        userId: user.id,
+        userId,
         startedAt: workout.startTime,
         energyBurned: workout.totalEnergyBurned,
         workoutName: workoutTypeFromEvent ? null : workout.workoutActivityType,
@@ -221,22 +207,14 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
 
     this.logger.info('eventsToBePublished', { eventsToBePublished });
 
-    await this.eventarc.publish(eventsToBePublished);
+    await this.eventarcService.publish(eventsToBePublished);
 
     this.logger.info(`All workouts created and published`);
   }
 }
 
-const LoggerContextSchema = WorkoutInputDto.pick({ username: true });
-
 export const appHandler = createPubSubHandler({
   handler: AppHandler,
   schema: () => WorkoutInputDto,
   topic: WORKOUT_PROCESSOR_QUEUE,
-  loggerContext: (event) => {
-    const result = LoggerContextSchema.safeParse(event.data);
-    if (result.success) {
-      return `usr=${result.data.username}`;
-    }
-  },
 });
