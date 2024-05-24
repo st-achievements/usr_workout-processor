@@ -31,7 +31,7 @@
     "@st-achievements/core": "^1.1.0",
     "@st-achievements/database": "^1.4.0",
     "@st-api/core": "~5.0.0",
-    "@st-api/firebase": "~5.3.1",
+    "@st-api/firebase": "~5.4.0",
     "dayjs": "^1.11.11",
     "drizzle-orm": "^0.30.10",
     "express": "~4.19.2",
