@@ -10,7 +10,7 @@ import { AppModule } from './app.module.js';
 dayjs.extend(customParseFormat);
 
 const app = StFirebaseApp.create(AppModule, {
-  secrets: [DATABASE_CONNECTION_STRING],
+  secrets: [],
   adapter: new AchievementsCoreAdapter(),
 }).addPubSub(appHandler);
 
