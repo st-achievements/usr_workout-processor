@@ -1,5 +1,4 @@
 import { AchievementsCoreAdapter } from '@st-achievements/core';
-import { DATABASE_CONNECTION_STRING } from '@st-achievements/database';
 import { StFirebaseApp } from '@st-api/firebase';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';

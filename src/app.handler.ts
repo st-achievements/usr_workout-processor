@@ -32,7 +32,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
     const { userId } = getAuthContext();
     Logger.setContext(`u${userId}`);
 
-    this.logger.info({ event });
+    this.logger.info('event', { event });
 
     if (!event.data.workouts.length) {
       this.logger.info(
@@ -54,7 +54,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
       },
     );
 
-    this.logger.info({ workoutsAlreadyCreated });
+    this.logger.info('workoutsAlreadyCreated', { workoutsAlreadyCreated });
 
     const externalIdsAlreadyCreated = workoutsAlreadyCreated.map(
       (workout) => workout.externalId,
@@ -76,7 +76,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
       (workout) => !externalIdsAlreadyCreated.includes(workout.id),
     );
 
-    this.logger.info({ workoutsToBeCreated });
+    this.logger.info('workoutsToBeCreated', { workoutsToBeCreated });
 
     if (!workoutsToBeCreated.length) {
       this.logger.info('All workouts sent are already created');
@@ -98,7 +98,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
       },
     });
 
-    this.logger.info({ periods });
+    this.logger.info('periods', { periods });
 
     const workoutTypes = await this.drizzle.query.wrkWorkoutType.findMany({
       where: and(
@@ -122,7 +122,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
       },
     });
 
-    this.logger.info({ workoutTypes });
+    this.logger.info('workoutTypes', { workoutTypes });
 
     const workoutsToBeInserted: InferInsertModel<typeof usr.workout>[] = [];
 
@@ -133,15 +133,15 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
     );
 
     for (const workout of workoutsToBeCreated) {
+      const date = dayjs(workout.startTime);
       const period = periods.find(({ startAt, endAt }) => {
-        const date = dayjs(workout.startTime);
         const start = dayjs(startAt);
         const end = dayjs(endAt);
         return date.isAfter(start) && date.isBefore(end);
       });
       if (!period) {
         this.logger.warn(
-          `${workout.id} - could not find period for ${dayjs(workout.startTime, 'YYYY-MM-DD')}`,
+          `${workout.id} - could not find period for ${date.format('YYYY-MM-DD')}`,
         );
         continue;
       }
@@ -209,7 +209,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
 
     await this.eventarcService.publish(eventsToBePublished);
 
-    this.logger.info(`All workouts created and published`);
+    this.logger.info('All workouts created and published');
   }
 }
 
