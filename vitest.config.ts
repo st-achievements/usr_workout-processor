@@ -1,5 +1,5 @@
 import { vitestConfig } from '@st-api/config';
-import { InlineConfig } from 'vitest';
+import { InlineConfig } from 'vitest/node';
 import { defineConfig, mergeConfig } from 'vitest/config';
 
 export default defineConfig(async (env) =>

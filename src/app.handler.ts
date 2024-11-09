@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { EventarcService, getAuthContext } from '@st-achievements/core';
 import { cfg, Drizzle, usr, wrk } from '@st-achievements/database';
 import { getCorrelationId } from '@st-api/core';
@@ -9,7 +8,16 @@ import {
   PubSubHandler,
 } from '@st-api/firebase';
 import dayjs from 'dayjs';
-import { and, asc, eq, inArray, InferInsertModel, or, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  eq,
+  inArray,
+  InferInsertModel,
+  isNull,
+  or,
+  sql,
+} from 'drizzle-orm';
 
 import {
   WORKOUT_CREATED_EVENT,
@@ -18,6 +26,7 @@ import {
 } from './app.constants.js';
 import { WorkoutEventDto } from './workout-event.dto.js';
 import { WorkoutInputDto } from './workout-input.dto.js';
+import { Injectable } from '@stlmpp/di';
 
 @Injectable()
 export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
@@ -89,7 +98,10 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
     });
 
     const periods = await this.drizzle.query.cfgPeriod.findMany({
-      where: and(eq(cfg.period.active, true), and(or(...periodsConditions))),
+      where: and(
+        isNull(cfg.period.inactivatedAt),
+        and(or(...periodsConditions)),
+      ),
       orderBy: [asc(cfg.period.startAt), asc(cfg.period.endAt)],
       columns: {
         id: true,
@@ -102,7 +114,7 @@ export class AppHandler implements PubSubHandler<typeof WorkoutInputDto> {
 
     const workoutTypes = await this.drizzle.query.wrkWorkoutType.findMany({
       where: and(
-        eq(wrk.workoutType.active, true),
+        isNull(wrk.workoutType.inactivatedAt),
         and(
           or(
             inArray(wrk.workoutType.name, [
